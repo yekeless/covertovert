@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyCovertChannel &mdash; Covert Channel 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Covert Channel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Covert Channel</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Covert Channel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">MyCovertChannel</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MyCovertChannel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">CovertChannelBase</span> <span class="kn">import</span> <span class="n">CovertChannelBase</span>
+<span class="kn">from</span> <span class="nn">scapy.all</span> <span class="kn">import</span> <span class="n">IP</span><span class="p">,</span> <span class="n">TCP</span><span class="p">,</span> <span class="n">sniff</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+
+<span class="n">BIT_PER_PACKET</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># The number of bits we send in each packet</span>
+<span class="n">CHESSBOARD_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">MIN_PACKET_SIZE</span> <span class="o">=</span> <span class="mi">20</span> <span class="c1"># Minimum TCP packet which only includes TCP headers size is 20 </span>
+
+<span class="c1"># The first CHESSBOARD_SIZE bits of the packet size is the chessboard, the following BIT_PER_PACKET bits are the negation bits</span>
+<span class="c1"># length of bit representation of packet size = CHESSBOARD_SIZE + BIT_PER_PACKET</span>
+
+<div class="viewcode-block" id="number_of_ones_in_bit_representation">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.number_of_ones_in_bit_representation">[docs]</a>
+<span class="k">def</span> <span class="nf">number_of_ones_in_bit_representation</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the number of ones in the binary representation of the given value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">number_of_ones</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">digit</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">digit</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&amp;</span> <span class="n">digit</span><span class="p">:</span>
+            <span class="n">number_of_ones</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">digit</span> <span class="o">&lt;&lt;=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">number_of_ones</span></div>
+
+
+<div class="viewcode-block" id="xor_result_of_chessboard">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.xor_result_of_chessboard">[docs]</a>
+<span class="k">def</span> <span class="nf">xor_result_of_chessboard</span><span class="p">(</span><span class="n">chessboard</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the total XOR result of the coins of the given chessboard</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xor_result</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CHESSBOARD_SIZE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">chessboard</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">xor_result</span> <span class="o">^=</span> <span class="n">i</span>
+        <span class="n">chessboard</span> <span class="o">&gt;&gt;=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">xor_result</span></div>
+
+
+<div class="viewcode-block" id="coin_number_to_flip">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.coin_number_to_flip">[docs]</a>
+<span class="k">def</span> <span class="nf">coin_number_to_flip</span><span class="p">(</span><span class="n">chessboard</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">devils_number</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determines the coin to flip according to the given chessboard and devils number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xor_result</span> <span class="o">=</span> <span class="n">xor_result_of_chessboard</span><span class="p">(</span><span class="n">chessboard</span><span class="p">)</span>
+    <span class="n">coin</span> <span class="o">=</span> <span class="n">xor_result</span> <span class="o">^</span> <span class="n">devils_number</span>
+    <span class="k">return</span> <span class="n">coin</span></div>
+
+
+<div class="viewcode-block" id="turn_parameter_list_into_devils_numbers">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.turn_parameter_list_into_devils_numbers">[docs]</a>
+<span class="k">def</span> <span class="nf">turn_parameter_list_into_devils_numbers</span><span class="p">(</span><span class="n">lst</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the devils numbers according to the user input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="calculate_payload_size">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.calculate_payload_size">[docs]</a>
+<span class="k">def</span> <span class="nf">calculate_payload_size</span><span class="p">(</span><span class="n">message_bits</span><span class="p">,</span> <span class="n">devils_numbers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the required payload size according to the given message bits and devils numbers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">message_bits</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BIT_PER_PACKET</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">devils_numbers</span><span class="p">)</span> <span class="o">!=</span> <span class="n">BIT_PER_PACKET</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The length of the message bits and parameters should be equal to BIT_PER_PACKET&quot;</span><span class="p">)</span>
+    
+    <span class="n">minimum_chessboard_size</span> <span class="o">=</span> <span class="n">MIN_PACKET_SIZE</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">BIT_PER_PACKET</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># Minimum packet size is 54</span>
+    <span class="n">chessboard</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="n">minimum_chessboard_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">CHESSBOARD_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">negation_bits</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">BIT_PER_PACKET</span><span class="p">):</span>
+        <span class="n">devils_number</span> <span class="o">=</span> <span class="n">devils_numbers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">message_bit</span> <span class="o">=</span> <span class="n">message_bits</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="n">coin_to_flip</span> <span class="o">=</span> <span class="n">coin_number_to_flip</span><span class="p">(</span><span class="n">chessboard</span><span class="p">,</span> <span class="n">devils_number</span><span class="p">)</span>
+
+        <span class="n">negation_bits</span> <span class="o">&lt;&lt;=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">number_of_ones_in_bit_representation</span><span class="p">(</span><span class="n">coin_to_flip</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">message_bit</span><span class="p">):</span>
+            <span class="n">negation_bits</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">packet_size</span> <span class="o">=</span> <span class="n">chessboard</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">BIT_PER_PACKET</span><span class="p">)</span> <span class="o">+</span> <span class="n">negation_bits</span>
+    <span class="n">payload_size</span> <span class="o">=</span> <span class="n">packet_size</span> <span class="o">-</span> <span class="n">MIN_PACKET_SIZE</span> <span class="c1"># 54 bytes for TCP, IP and LINK headers</span>
+    <span class="k">return</span> <span class="n">payload_size</span></div>
+
+
+<div class="viewcode-block" id="get_chessboard_from_packet_size">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.get_chessboard_from_packet_size">[docs]</a>
+<span class="k">def</span> <span class="nf">get_chessboard_from_packet_size</span><span class="p">(</span><span class="n">packet_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the chessboard information from the packet size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">packet_size</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">BIT_PER_PACKET</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_negation_bits_from_packet_size">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.get_negation_bits_from_packet_size">[docs]</a>
+<span class="k">def</span> <span class="nf">get_negation_bits_from_packet_size</span><span class="p">(</span><span class="n">packet_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the negation bits from the packet size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">packet_size</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">BIT_PER_PACKET</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="MyCovertChannel">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel">[docs]</a>
+<span class="k">class</span> <span class="nc">MyCovertChannel</span><span class="p">(</span><span class="n">CovertChannelBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    - You are not allowed to change the file name and class name.</span>
+<span class="sd">    - You can edit the class in any way you want (e.g. adding helper functions); however, there must be a &quot;send&quot; and a &quot;receive&quot; function, the covert channel will be triggered by calling these functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        We initialize the received message, bit array and stop flag.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">received_message</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="MyCovertChannel.send">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.send">[docs]</a>
+    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">devils_number_one</span><span class="p">,</span> <span class="n">devils_number_two</span><span class="p">,</span> <span class="n">min_sleep_time</span><span class="p">,</span> <span class="n">max_sleep_time</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        First we measure the start time, then we generate a random binary message with 16 bits. We send the message bit by bit by creating packets with the help of the calculate_payload_size function. We sleep for a random time between min_sleep_time and max_sleep_time after sending each packet. Finally, we measure the end time and print the elapsed time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+
+        <span class="n">devils_numbers</span> <span class="o">=</span> <span class="n">turn_parameter_list_into_devils_numbers</span><span class="p">([</span><span class="n">devils_number_one</span><span class="p">,</span> <span class="n">devils_number_two</span><span class="p">])</span>
+        <span class="n">binary_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_random_binary_message_with_logging</span><span class="p">(</span><span class="n">log_file_name</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">msg_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary_message</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">msg_len</span><span class="p">:</span>
+            <span class="n">message_bits</span> <span class="o">=</span> <span class="n">binary_message</span><span class="p">[</span><span class="n">i</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">BIT_PER_PACKET</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="n">BIT_PER_PACKET</span>
+            <span class="n">pkt</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">dst</span> <span class="o">=</span> <span class="s2">&quot;172.18.0.3&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">TCP</span><span class="p">(</span><span class="n">dport</span> <span class="o">=</span> <span class="mi">8000</span><span class="p">)</span> 
+            <span class="n">payload_size</span> <span class="o">=</span> <span class="n">calculate_payload_size</span><span class="p">(</span><span class="n">message_bits</span><span class="p">,</span> <span class="n">devils_numbers</span><span class="p">)</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span> <span class="o">*</span> <span class="n">payload_size</span>
+            <span class="n">pkt</span> <span class="o">=</span> <span class="n">pkt</span> <span class="o">/</span> <span class="n">payload</span>
+            <span class="n">CovertChannelBase</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">pkt</span><span class="p">)</span>
+            <span class="n">CovertChannelBase</span><span class="p">()</span><span class="o">.</span><span class="n">sleep_random_time_ms</span><span class="p">(</span><span class="n">min_sleep_time</span><span class="p">,</span><span class="n">max_sleep_time</span><span class="p">)</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">end_time</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Time elapsed: &quot;</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span></div>
+
+
+        
+<div class="viewcode-block" id="MyCovertChannel.receive">
+<a class="viewcode-back" href="../MyCovertChannel.html#MyCovertChannel.MyCovertChannel.receive">[docs]</a>
+    <span class="k">def</span> <span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">devils_number_one</span><span class="p">,</span> <span class="n">devils_number_two</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        We create a handle_packet function to handle the incoming packets. We calculate the chessboard and negation bits from the packet size. We determine the coin to flip according to the chessboard and devils number. We calculate the number of ones in the bit representation of the coin to flip</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">devils_numbers</span> <span class="o">=</span> <span class="n">turn_parameter_list_into_devils_numbers</span><span class="p">([</span><span class="n">devils_number_one</span><span class="p">,</span> <span class="n">devils_number_two</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">handle_packet</span><span class="p">(</span><span class="n">packet</span><span class="p">):</span>
+            <span class="n">tcp_packet</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="n">TCP</span><span class="p">]</span>
+            <span class="n">packet_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tcp_packet</span><span class="p">)</span>
+            <span class="n">chessboard</span> <span class="o">=</span> <span class="n">get_chessboard_from_packet_size</span><span class="p">(</span><span class="n">packet_size</span><span class="p">)</span>
+            <span class="n">negation_bits</span> <span class="o">=</span> <span class="n">get_negation_bits_from_packet_size</span><span class="p">(</span><span class="n">packet_size</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">devils_number</span> <span class="ow">in</span> <span class="n">devils_numbers</span><span class="p">:</span>
+                <span class="n">coin_to_flip</span> <span class="o">=</span> <span class="n">coin_number_to_flip</span><span class="p">(</span><span class="n">chessboard</span><span class="p">,</span> <span class="n">devils_number</span><span class="p">)</span>
+                <span class="n">number_of_ones</span> <span class="o">=</span> <span class="n">number_of_ones_in_bit_representation</span><span class="p">(</span><span class="n">coin_to_flip</span><span class="p">)</span>
+                <span class="n">negation_bit</span> <span class="o">=</span> <span class="n">negation_bits</span> <span class="o">//</span> <span class="mi">2</span>
+                <span class="n">negation_bits</span> <span class="o">=</span> <span class="n">negation_bits</span> <span class="o">%</span> <span class="mi">2</span>
+                <span class="n">negation_bits</span> <span class="o">&lt;&lt;=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">negation_bit</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">number_of_ones</span> <span class="o">%</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">number_of_ones</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+                <span class="n">received_char</span> <span class="o">=</span> <span class="n">CovertChannelBase</span><span class="p">()</span><span class="o">.</span><span class="n">convert_eight_bits_to_character</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">received_message</span> <span class="o">+=</span> <span class="n">received_char</span>
+                <span class="k">if</span> <span class="n">received_char</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log_message</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">received_message</span><span class="p">,</span> <span class="n">log_file_name</span><span class="p">)</span>
+                    <span class="k">return</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bit_array</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span><span class="p">:</span>
+            <span class="n">sniff</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s2">&quot;tcp and port 8000&quot;</span><span class="p">,</span> <span class="n">prn</span><span class="o">=</span><span class="n">handle_packet</span><span class="p">,</span> <span class="n">stop_filter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_flag</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, METU - Computer Engineering Department.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
