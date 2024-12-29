@@ -105,7 +105,7 @@ class MyCovertChannel(CovertChannelBase):
         self.bit_array = []
         self.stop_flag = False
 
-    def send(self, devils_number_one, devils_number_two, min_sleep_time, max_sleep_time, log_file_name):
+    def send(self,dest_ip , devils_number_one, devils_number_two, min_sleep_time, max_sleep_time, log_file_name):
         """
         First we measure the start time, then we generate a random binary message with 16 bits. We send the message bit by bit by creating packets with the help of the calculate_payload_size function. We sleep for a random time between min_sleep_time and max_sleep_time after sending each packet. Finally, we measure the end time and print the elapsed time.
         """
@@ -119,7 +119,7 @@ class MyCovertChannel(CovertChannelBase):
         while i < msg_len:
             message_bits = binary_message[i: i + BIT_PER_PACKET]
             i += BIT_PER_PACKET
-            pkt = IP(dst = "172.18.0.3") / TCP(dport = 8000) 
+            pkt = IP(dst = dest_ip) / TCP(dport = 8000) 
             payload_size = calculate_payload_size(message_bits, devils_numbers)
             character_list = string.ascii_letters + string.digits + string.punctuation
             payload = ''.join(random.choices(character_list, k=payload_size))

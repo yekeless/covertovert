@@ -2,6 +2,7 @@
   "covert_channel_code": "CSC-PSV-TCP",
   "send": {
     "parameters": {
+      "dest_ip": "172.18.0.3",
       "devils_number_one": 666,
       "devils_number_two": 999,
       "min_sleep_time": 20,
