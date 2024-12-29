@@ -27,7 +27,7 @@ The game is winnable for any number of coins **n**, where  **n**  is a power of 
 
 ## How This Problem is Used in Our Covert Channel
 
-The Devil’s Chessboard problem inspired the encoding strategy in this covert channel. We used this puzzle to send our encrypted messages. Our packets are maximum of 1024 bytes (representing 10 bits). The first 8 bits of this length represents chessboard and the last 2 bits are negation bits needed to resolve the bits sent in the receiver. 
+The Devil’s Chessboard problem inspired the encoding strategy in this covert channel. We used this puzzle to send our encrypted messages. Our packets are maximum of 1024 bytes (representing 10 bits). The first 8 bits of this length represents chessboard and the last 2 bits are negation bits needed to resolve the bits sent in the receiver. (The usage of negation bits are explained later in this section)
 
 ```
 Bit representation of packet size:
@@ -51,12 +51,12 @@ Lets explain the steps:
 
 3. **Negation Bits:**
    - We create random chessboards and the solutions are random as well. So we had to use some bits to hide the information of how to use the solution to decrypt the hidden message.
-   - The last two bits represent the negation bits. Since we encryp 2 bits every packet, we needed 2 bits at the end to resolve the bit in receiver. The usage of negation bits are explained later in this section.
+   - The last two bits represent the negation bits. Since we encryp 2 bits every packet, we needed 2 bits at the end to resolve the bit in receiver. (The usage of negation bits are explained later in this section)
 
 4. **Decoding the Message:**
    - The receiver first resolves the chessboard and negation bits from the packet size and gets devils numbers from the user parameters.
    - The receiver solves the problem and finds the coin to flip for every devils number.
-   - The receiver finds the number of bits in the bit representation of the result.
+   - The receiver finds the number of ones in the bit representation of the result.
    - The receiver uses negation bits to decode the message:
    
        #### Negation Bit Usage Table
