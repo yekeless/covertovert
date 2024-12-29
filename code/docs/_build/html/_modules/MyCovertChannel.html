@@ -73,7 +73,8 @@
 <span class="kn">from</span> <span class="nn">scapy.all</span> <span class="kn">import</span> <span class="n">IP</span><span class="p">,</span> <span class="n">TCP</span><span class="p">,</span> <span class="n">sniff</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 <span class="kn">import</span> <span class="nn">time</span>
-
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
 
 
 <span class="n">BIT_PER_PACKET</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># The number of bits we send in each packet</span>
@@ -216,7 +217,8 @@
             <span class="n">i</span> <span class="o">+=</span> <span class="n">BIT_PER_PACKET</span>
             <span class="n">pkt</span> <span class="o">=</span> <span class="n">IP</span><span class="p">(</span><span class="n">dst</span> <span class="o">=</span> <span class="s2">&quot;172.18.0.3&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">TCP</span><span class="p">(</span><span class="n">dport</span> <span class="o">=</span> <span class="mi">8000</span><span class="p">)</span> 
             <span class="n">payload_size</span> <span class="o">=</span> <span class="n">calculate_payload_size</span><span class="p">(</span><span class="n">message_bits</span><span class="p">,</span> <span class="n">devils_numbers</span><span class="p">)</span>
-            <span class="n">payload</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span> <span class="o">*</span> <span class="n">payload_size</span>
+            <span class="n">character_list</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">character_list</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">payload_size</span><span class="p">))</span>
             <span class="n">pkt</span> <span class="o">=</span> <span class="n">pkt</span> <span class="o">/</span> <span class="n">payload</span>
             <span class="n">CovertChannelBase</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">pkt</span><span class="p">)</span>
             <span class="n">CovertChannelBase</span><span class="p">()</span><span class="o">.</span><span class="n">sleep_random_time_ms</span><span class="p">(</span><span class="n">min_sleep_time</span><span class="p">,</span><span class="n">max_sleep_time</span><span class="p">)</span>

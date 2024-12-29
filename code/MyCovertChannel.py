@@ -2,7 +2,8 @@ from CovertChannelBase import CovertChannelBase
 from scapy.all import IP, TCP, sniff
 from random import randint
 import time
-
+import random
+import string
 
 
 BIT_PER_PACKET = 2 # The number of bits we send in each packet
@@ -120,7 +121,8 @@ class MyCovertChannel(CovertChannelBase):
             i += BIT_PER_PACKET
             pkt = IP(dst = "172.18.0.3") / TCP(dport = 8000) 
             payload_size = calculate_payload_size(message_bits, devils_numbers)
-            payload = "X" * payload_size
+            character_list = string.ascii_letters + string.digits + string.punctuation
+            payload = ''.join(random.choices(character_list, k=payload_size))
             pkt = pkt / payload
             CovertChannelBase().send(pkt)
             CovertChannelBase().sleep_random_time_ms(min_sleep_time,max_sleep_time)
