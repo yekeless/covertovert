@@ -4,14 +4,16 @@
 
 This project implements a covert communication channel to transmit hidden messages using TCP packet sizes. The goal is to send binary data covertly by encoding 2 bits of information per packet. The implementation uses a creative approach inspired by a puzzle called the "Devil's Chessboard," which allows for encoding and decoding of data based on bit manipulations and coin-flipping logic.
 
+I first saw this puzzle in the 2016 issue of Matematik Dünyası, a Mathematics Magazine. It's a very tricky and fun puzzle to try to solve. If you want a full article about it, you can read more here: https://brianhamrick.com/blog/devils-chessboard
+
+---
+
 ## Channel Capacity
 
 The covert channel achieves a transmission rate of approximately 40 bits per second. This capacity allows for the transmission of short messages while maintaining stealth and reliability. The throughput is primarily limited by:
 - The encoding of 2 bits per packet
 - Network latency and packet transmission intervals
 - Processing overhead for the Devil's Chessboard calculations
-
-I first saw this puzzle in the 2016 issue of Matematik Dünyası, a Mathematics Magazine. It's a very tricky and fun puzzle to try to solve. If you want a full article about it, you can read more here: https://brianhamrick.com/blog/devils-chessboard
 
 ---
 
